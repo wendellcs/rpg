@@ -54,4 +54,15 @@ class Mundo:
             for x, celula in enumerate(linha):
                 if ( x , y) == ( self.jogador_x, self.jogador_y ):
                     texto_linha += ICONE_JOGADOR
-                
+
+                # Código novo
+                elif self.inimigo_em(x, y):
+                    texto_linha += 'E'
+                else:
+                    texto_linha += celula 
+                    print('|' + texto_linha +  '|')
+# git add .
+# git commit -m 'mensagem'
+# git push
+
+# git clone https://github.com/wendellcs/rpg.git
