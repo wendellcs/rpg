@@ -60,12 +60,13 @@ class Mundo:
         novo_y = self.jogador_y + dy
         if self.esta_bloqueado(novo_x, novo_y):
             print("Você esbarra em uma parede.")
-            return
+            return False
         inimigo = self.inimigo_em(novo_x, novo_y)
         if inimigo:
             print("Um inimigo bloqueia o caminho.")
-            return
+            return False
         self.jogador_x, self.jogador_y = novo_x, novo_y
+        return True
 
     def esta_bloqueado(self, x, y):
         if y < 0 or y >= len(self.grade) or x < 0 or x >= len(self.grade[0]):
@@ -77,19 +78,6 @@ class Mundo:
             if inimigo[0] == x and inimigo[1] == y:
                 return inimigo
         return None
-
-    def renderizar(self):
-        for y, linha in enumerate(self.grade):
-            texto_linha = ""
-            for x, celula in enumerate(linha):
-                if (x, y) == (self.jogador_x, self.jogador_y):
-                    texto_linha += ICONE_JOGADOR
-                elif self.inimigo_em(x, y):
-                    texto_linha += 'E'
-                else:
-                    texto_linha += celula
-            print("|" + texto_linha + "|")
-        print("Movimento: W (cima) / S (baixo) / A (esquerda) / D (direita) / Q (sair)")
 
     def vagar_inimigos(self):
         for inimigo in self.inimigos:
@@ -119,7 +107,7 @@ class JanelaJogo(arcade.Window):
         self.textura_inimigo_andando = arcade.load_texture(CAMINHO_INIMIGO_ANDANDO)
 
         # Controle da animação 
-        self.indice_frame_andando = 0 # Qual frame da caminhada ta sendo exibido
+        self.indice_frame_andando = 0 # Qual frame da caminhada está sendo exibido
         self.tempo_desde_ultimo_frame = 0.0
         self.tempo_desde_ultimo_movimento_jogador = 999.0 # Há quanto tempo o jogador está parado
         self.direcao_horizontal = 1 # 1 = direita, -1 = esquerda
@@ -151,15 +139,15 @@ class JanelaJogo(arcade.Window):
 
     def montar_personagem(self):
         self.sprite_jogador = arcade.Sprite(CAMINHO_JOGADOR_IDLE, scale=ESCALA) # Cria o sprite do jogador
-        # Posiciona o jogador
-        self.atualizar_posicao_sprite(self.sprite_jogador, self.mundo.jogador_x, self.mundo_jogador_y) 
+        # Posiciona o jogador (Corrigido para self.mundo.jogador_y)
+        self.atualizar_posicao_sprite(self.sprite_jogador, self.mundo.jogador_x, self.mundo.jogador_y) 
         # Adiciona o sprite do jogador à lista
         self.sprites_jogador.append(self.sprite_jogador)
 
         # Percorre cada inimigo do mundo
         for inimigo in self.mundo.inimigos:
             # Cria a sprite do inimigo
-            sprite = arcade.Sprite(CAMINHO_INIMIGO_PARADO, scale = ESCALA)
+            sprite = arcade.Sprite(CAMINHO_INIMIGO_PARADO, scale=ESCALA)
             # Posiciona nas coords do inimigo 
             self.atualizar_posicao_sprite(sprite, inimigo[0], inimigo[1])
             # Adiciona à lista de inimigos
@@ -171,9 +159,7 @@ class JanelaJogo(arcade.Window):
 
     # Método chamado quando a tecla é pressionada
     def on_key_press(self, key, modifiers):
-        # Flag que indica se o jogador se moveu
         moveu = False 
-        # Se tecla W ou seta pra cima
         if key in (arcade.key.W, arcade.key.UP):
             moveu = self.mundo.mover_jogador(0, -1)
             if moveu:
@@ -234,19 +220,21 @@ class JanelaJogo(arcade.Window):
         self.tempo_desde_ultimo_passo_inimigo += delta_time
 
         if self.tempo_desde_ultimo_passo_inimigo >= INTERVALO_MOVIMENTO_INIMIGO:
+            # Salva as posições antigas dos inimigos antes de movê-los
+            posicoes_antigas = [list(inimigo) for inimigo in self.mundo.inimigos]
+            
             self.mundo.vagar_inimigos()
             
             # Percorre cada inimigo
             for i, inimigo in enumerate(self.mundo.inimigos):
                 sprite = self.sprites_inimigos[i]
-
                 dx = inimigo[0] - posicoes_antigas[i][0]
                 
-                # Moveu para direita
+                # Moveu para direita ou esquerda
                 if dx > 0:
                     sprite.scale_x = abs(sprite.scale_x)
                 elif dx < 0:
-                    sprite.scale_x -abs(sprite.scale_x)
+                    sprite.scale_x = -abs(sprite.scale_x) # Corrigido o sinal de atribuição (=)
 
                 self.atualizar_posicao_sprite(sprite, inimigo[0], inimigo[1])
                 sprite.texture = self.textura_inimigo_andando
@@ -273,43 +261,6 @@ class JanelaJogo(arcade.Window):
         elif self.ultimo_tipo_movimento == 'baixo':
             self.sprite_jogador.texture = self.textura_idle
 
-janela = JanelaJogo()
-arcade.run()
-
-def executar():
-    mundo = Mundo()
-    rodando = True
-    while rodando:
-        mundo.renderizar()
-        comando = input("\n> ").strip().lower()
-        if comando == 'w':
-            mundo.mover_jogador(0, -1)
-        elif comando == 's':
-            mundo.mover_jogador(0, 1)
-        elif comando == 'a':
-            mundo.mover_jogador(-1, 0)
-        elif comando == 'd':
-            mundo.mover_jogador(1, 0)
-        elif comando == 'q':
-            rodando = False
-            continue
-        else:
-            print("Comando inválido.")
-            continue
-        mundo.vagar_inimigos()
-    print("Obrigado por jogar!")
-
-# Chamada para iniciar o jogo
-executar()
-
-# git add .
-# git commit -m 'mensagem'
-# git push
-# git clone https://github.com/wendellcs/rpg.git
-
-
-# cd ./rpg
-# pip install arcade
-# python -m pip install arcade <- Só o Eduardo
-
-# git pull
+if __name__ == "__main__":
+    janela = JanelaJogo()
+    arcade.run()
