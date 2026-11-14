@@ -9,13 +9,16 @@ DURACAO_FRAME_ANDANDO = 0.12
 TEMPO_PARA_VOLTAR_AO_IDLE = 0.3 # Tempo para resetar as animações do player.
 
 # Caminhos das imagens e sprites utilizadas
-CAMINHO_PAREDE = None 
-CAMINHO_CHAO = None 
-CAMINHO_JOGADOR_IDLE = None 
-CAMINHO_JOGADOR_UP = None 
-CAMINHOS_JOGADOR_ANDANDO = [] 
-CAMINHO_INIMIGO_PARADO = None 
-CAMINHO_INIMIGO_ANDANDO = None
+CAMINHO_PAREDE = "imagens_arcade/parede_tile.png"
+CAMINHO_CHAO = "imagens_arcade/chao.png"
+CAMINHO_JOGADOR_IDLE = "imagens_arcade/player/idle1.png"
+CAMINHO_JOGADOR_UP = "imagens_arcade/player/up1.png"
+CAMINHOS_JOGADOR_ANDANDO = [
+    f"imagens_arcade/player/direita{i}.png"
+    for i in range(1, 4)
+]
+CAMINHO_INIMIGO_PARADO = "imagens_arcade/inimigos/abobora/abobora1.png"
+CAMINHO_INIMIGO_ANDANDO = "imagens_arcade/inimigos/abobora/abobora2.png"
 
 mapa_tiles = [
     'BBBBBBBBBBBBBBBBBBBB',
